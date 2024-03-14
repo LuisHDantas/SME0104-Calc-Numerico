@@ -1,4 +1,4 @@
-
+import numpy as np
 # L é uma matriz triangular inferior
 # b é termo independente
 # retorno será solução do sistema
@@ -60,6 +60,78 @@ def LU(A, b):
     x = sub_regressiva(U, y)
     return x
 
+# A: matriz de coeficientes
+# b: vetor termo independente
+# x: vetor solução do sistema
+def eliminacao_gauss(A,b):
+    n = len(A)
+
+    for k in range(n-1):
+        for i in range(k+1, n):
+            m = -A[i][k]/A[k][k]
+            for aux in range(k, n):
+                A[i][aux] = A[i][aux] + m*A[k][aux]
+            b[i] = b[i] + m*b[k]
+
+    x = sub_regressiva(A,b)
+
+    return x
+
+#A: matriz dos coeficientes
+#b: vetor termo independente
+#x: vetor solução do sistema
+def eliminacao_gauss_pivo(A,b):
+    n = len(A)
+
+    for k in range(n-1):
+        for aux in range(k, n):
+            index = k
+            maximum = abs(A[k][k])
+            if abs(A[aux][k]) > maximum:
+                maximum = abs(A[aux][k])
+                index = aux
+
+            A[k], A[index] = A[index], A[k]
+            b[k], b[index] = b[index], b[k]
+
+        for i in range(k+1, n):
+            m = -A[i][k]/A[k][k]
+
+            for aux in range(k,n):
+                A[i][aux] = A[i][aux] + m*A[k][aux]
+            
+            b[i] = b[i] + m*b[k]
+
+    x = sub_regressiva(A,b)
+
+    return x
+
+#A: matriz não-singular
+#L, U: matrizes triangulares inferior e superior, respectivamente
+#P: matriz de permutação
+def decomposicao_lup(A):
+    n = len(A)
+
+    U = np.copy(A)
+    L = np.eye(n)
+    P = np.copy(L)
+
+    for j in np.arange(n-1):
+        # pivô
+        pivo = np.argmax(np.abs(U[j:n,j]))
+        P[[j,pivo], :] = P[[pivo,j], :]
+        U[[j,pivo], j:n] = U[[pivo,j], j:n]
+        L[[j,pivo], :j] = L[[pivo,j], :j]
+
+        for i in np.arange(j+1, n):
+            L[i,j] = U[i,j]/U[j,j]
+            U[i,j+1:n] = U[i,j+1:n] - L[i,j]*U[j,j+1:n]
+            U[i,j] = 0
+
+    return L, U, P
+    
+
+
 if __name__ == "__main__":
     A = []
     n = int(input("Enter the size of the matrix: "))
@@ -70,5 +142,15 @@ if __name__ == "__main__":
     
     b = list(map(int, input("Enter the elements of the vector term: ").split()))
     
-    print(LU(A, b))
+    L, U, P = decomposicao_lup(A)
+    print("Matrix L:")
+    for row in L:
+        print(row)
+    print("Matrix U:")
+    for row in U:
+        print(row)
+    print("Matrix P:")
+    for row in P:
+        print(row)
+
 
