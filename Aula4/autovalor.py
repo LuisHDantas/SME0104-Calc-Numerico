@@ -1,4 +1,6 @@
 import numpy as np
+from scipy.linalg import lu_factor, lu_solve
+
 
 def clgs(A):
     m, n = A.shape
@@ -39,3 +41,44 @@ def francis(A, tol):
         erro = np.max(np.abs(np.tril(A, -1)));
 
     return V, np.diag(A)
+
+
+# não tinha caso de teste para confirmar se a função está correta
+def potencias(A, tol):
+    k = 0
+    kmax = 1000
+    erro = np.inf
+    n = A.shape[0]
+    y0 = np.zeros(n)
+    y0[0] = 1
+
+    while erro > tol and k < kmax:
+        x = A @ y0
+        y = x / np.linalg.norm(x)
+        erro = np.abs(np.abs(y0.T @ y) - 1)
+        y0 = y
+        k += 1
+
+    lambda_ = y.T @ A @ y
+    return lambda_, y, k
+
+# não tinha caso de teste para confirmar se a função está correta
+def potencia_inv(A, tol, alpha=0):
+    k = 0
+    kmax = 1000
+    erro = np.inf
+    n = A.shape[0]
+    y0 = np.zeros(n)
+    y0[0] = 1
+    B = A - alpha * np.eye(n)
+    lu, piv = lu_factor(B)
+
+    while erro > tol and k < kmax:
+        x = lu_solve((lu, piv), y0)
+        y = x / np.linalg.norm(x)
+        erro = np.abs(np.abs(y0.T @ y) - 1)
+        y0 = y
+        k += 1
+
+    lambda_ = y.T @ A @ y
+    return lambda_, y, k
